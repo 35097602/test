@@ -1,8 +1,4 @@
-class Focus(nn.Module):
-    # Focus wh information into c-space
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
-        super().__init__()
-        self.conv = Conv(c1 * 4, c2, k, s, p, g, act)
-       
-    def forward(self, x):  # x(b,c,w,h) -> y(b,4c,w/2,h/2)
-        return self.conv(torch.cat([x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]], 1))
+# r为目标wh和锚框wh的比值，比值在0.25到4之间的则采用该种锚框预测目标
+r = t[:, :, 4:6] / anchors[:, None]  # wh ratio：计算标签box和当前层的anchors的宽高比，即:wb/wa,hb/ha
+# 将比值和预先设置的比例anchor_t对比，符合条件为True，反之False
+j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
